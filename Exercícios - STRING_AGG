@@ -1,0 +1,170 @@
+CREATE DATABASE atvStringAgg
+GO
+
+USE atvStringAgg
+GO
+
+CREATE TABLE Vendas (
+    VendaID INT PRIMARY KEY IDENTITY,
+    Vendedor NVARCHAR(50),
+    Produto NVARCHAR(50),
+    Categoria NVARCHAR(50),
+    ClienteID INT
+);
+
+CREATE TABLE Clientes (
+    ClienteID INT PRIMARY KEY IDENTITY,
+    Nome NVARCHAR(50),
+    Cidade NVARCHAR(50)
+);
+
+CREATE TABLE Pedidos (
+    PedidoID INT PRIMARY KEY IDENTITY,
+    ClienteID INT,
+    Produto NVARCHAR(50),
+    Quantidade INT
+);
+
+CREATE TABLE Funcionarios (
+    FuncionarioID INT PRIMARY KEY IDENTITY,
+    Nome NVARCHAR(50),
+    Cargo NVARCHAR(50),
+    Departamento NVARCHAR(50)
+);
+
+CREATE TABLE Pagamentos (
+    PagamentoID INT PRIMARY KEY IDENTITY,
+    FormaPagamento NVARCHAR(50),
+    ClienteID INT
+);
+
+INSERT INTO Vendas (Vendedor, Produto, Categoria, ClienteID)
+VALUES
+('João', 'Notebook', 'Eletrônicos', 1),
+('João', 'Mouse', 'Eletrônicos', 2),
+('Maria', 'Cadeira', 'Móveis', 3),
+('Maria', 'Mesa', 'Móveis', 4),
+('Carlos', 'Smartphone', 'Eletrônicos', 5),
+('Carlos', 'Monitor', 'Eletrônicos', 2),
+('Ana', 'Luminária', 'Decoração', 6),
+('Ana', 'Relógio', 'Acessórios', 7),
+('João', 'Teclado', 'Eletrônicos', 8),
+('Carlos', 'Fone de Ouvido', 'Eletrônicos', 9);
+
+INSERT INTO Clientes (Nome, Cidade)
+VALUES
+('Alice', 'São Paulo'),
+('Bruno', 'Rio de Janeiro'),
+('Clara', 'Salvador'),
+('Diego', 'Porto Alegre'),
+('Eduardo', 'Brasília'),
+('Fernanda', 'Recife'),
+('Gabriela', 'Curitiba'),
+('Henrique', 'Fortaleza'),
+('Isabela', 'Belo Horizonte'),
+('João Pedro', 'Manaus');
+
+INSERT INTO Pedidos (ClienteID, Produto, Quantidade)
+VALUES
+(1, 'Monitor', 1),
+(1, 'Notebook', 1),
+(2, 'Mouse', 3),
+(3, 'Cadeira', 2),
+(4, 'Mesa', 1),
+(5, 'Smartphone', 4),
+(6, 'Luminária', 2),
+(7, 'Relógio', 1),
+(8, 'Teclado', 2),
+(9, 'Fone de Ouvido', 3),
+(10, 'Monitor', 1);
+
+INSERT INTO Funcionarios (Nome, Cargo, Departamento)
+VALUES
+('Carlos', 'Gerente', 'Vendas'),
+('Ana', 'Analista', 'TI'),
+('João', 'Vendedor', 'Comercial'),
+('Maria', 'Supervisora', 'Vendas'),
+('Pedro', 'Vendedor', 'Comercial'),
+('Fernanda', 'Analista', 'Recursos Humanos'),
+('Rafael', 'Assistente', 'Logística'),
+('Clara', 'Técnica', 'Manutenção'),
+('Luciana', 'Estagiária', 'TI'),
+('Marcos', 'Gerente', 'Financeiro');
+
+INSERT INTO Pagamentos (FormaPagamento, ClienteID)
+VALUES
+('Cartão de Crédito', 1),
+('Boleto', 2),
+('Pix', 3),
+('Cartão de Débito', 4),
+('Pix', 5),
+('Boleto', 6),
+('Cartão de Crédito', 7),
+('Pix', 8),
+('Boleto', 9),
+('Cartão de Débito', 10);
+
+--1
+SELECT Vendedor,
+	STRING_AGG(Produto, ', ') WITHIN GROUP(ORDER BY Produto) AS produtos_vendedor
+FROM Vendas
+GROUP BY Vendedor;
+
+--2 não precisa de distinct
+SELECT Vendedor,
+	 STRING_AGG(Categoria, ', ') WITHIN GROUP(ORDER BY Categoria ASC) AS Categoria_distinta
+FROM Vendas
+GROUP BY Vendedor;
+
+--3
+SELECT c.Nome, p.Quantidade,
+	STRING_AGG(p.Produto, '; ') AS PedidosClientes
+FROM Clientes c
+JOIN Pedidos p ON p.ClienteID = c.ClienteID
+GROUP BY c.Nome;
+
+--4
+SELECT Cargo,
+	STRING_AGG(Nome, ', ') AS CargoFuncionarios
+FROM Funcionarios
+GROUP BY Cargo;
+
+--5
+SELECT p.FormaPagamento,
+	STRING_AGG(c.Nome, ', ') WITHIN GROUP(ORDER BY c.ClienteID) AS FormaPagamento
+FROM Pagamentos p
+JOIN Clientes c ON p.ClienteID = c.ClienteID
+GROUP BY p.FormaPagamento;
+
+--6
+SELECT Vendedor,
+	STRING_AGG(Produto + ' (' + Categoria + ')', ' / ') AS Produtos_vendidos
+FROM Vendas
+GROUP BY Vendedor;
+
+--7
+SELECT c.ClienteID,
+	STRING_AGG(p.PedidoID, ' ')  AS ID_pedidos
+FROM Clientes c
+JOIN Pedidos p ON p.ClienteID = c.ClienteID
+GROUP BY c.ClienteID;
+
+--8 não sei se é isso que pede
+SELECT Departamento,
+	STRING_AGG(Nome + '(' + Cargo + ')', ', ') AS Cargos_ocupados
+FROM Funcionarios
+GROUP BY Departamento;
+
+--9  Para cada vendedor, liste as cidades dos clientes que ele atendeu, sem repetições, separadas por vírgula e ordenadas alfabeticamente.
+SELECT v.Vendedor,
+	STRING_AGG(c.Cidade, ', ') WITHIN GROUP(ORDER BY c.Cidade ASC) AS cidades_clientes
+FROM Vendas v
+JOIN Clientes c ON c.ClienteID = v.ClienteID
+GROUP BY v.Vendedor;
+
+--10 Crie um relatório que mostre para cada cliente, os nomes dos vendedores que atenderam seus pedidos, separados por traço e sem duplicar vendedores.
+SELECT c.Nome,		
+	STRING_AGG(v.Vendedor, ' - ') AS nome_vendedor
+FROM Clientes c
+	JOIN Vendas v ON v.ClienteID = c.ClienteID
+GROUP BY c.Nome;

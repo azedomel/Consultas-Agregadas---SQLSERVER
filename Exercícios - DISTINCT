@@ -1,0 +1,104 @@
+CREATE DATABASE exercicios2
+GO
+
+USE exercicios2
+GO
+
+CREATE TABLE Clientes (
+    ClienteID INT PRIMARY KEY,
+    Nome NVARCHAR(50),
+    Cidade NVARCHAR(50),
+    Estado NVARCHAR(2)
+);
+
+CREATE TABLE Vendas (
+    VendaID INT PRIMARY KEY,
+    Produto NVARCHAR(50),
+    Categoria NVARCHAR(50),
+    Quantidade INT
+);
+
+CREATE TABLE Pagamentos (
+    PagamentoID INT PRIMARY KEY,
+    PedidoID INT,
+    FormaPagamento NVARCHAR(50)
+);
+
+CREATE TABLE Funcionarios (
+    FuncionarioID INT PRIMARY KEY,
+    Nome NVARCHAR(50),
+    Cargo NVARCHAR(50),
+    Departamento NVARCHAR(50)
+);
+
+CREATE TABLE Pedidos (
+    PedidoID INT PRIMARY KEY,
+    ClienteID INT,
+    Produto NVARCHAR(50),
+    Valor DECIMAL(10, 2)
+);
+
+INSERT INTO Clientes (ClienteID, Nome, Cidade, Estado) VALUES
+(1, 'Ana', 'São Paulo', 'SP'),
+(2, 'João', 'Rio de Janeiro', 'RJ'),
+(3, 'Maria', 'Belo Horizonte', 'MG'),
+(4, 'Beatriz', 'São Paulo', 'SP');
+
+INSERT INTO Vendas (VendaID, Produto, Categoria, Quantidade) VALUES
+(1, 'Notebook', 'Eletrônicos', 2),
+(2, 'Celular', 'Eletrônicos', 3),
+(3, 'Monitor', 'Eletrônicos', 1),
+(4, 'Cadeira', 'Móveis', 4);
+
+INSERT INTO Pagamentos (PagamentoID, PedidoID, FormaPagamento) VALUES
+(1, 1, 'Cartão'),
+(2, 2, 'Boleto'),
+(3, 3, 'Cartão'),
+(4, 4, 'Pix');
+
+INSERT INTO Funcionarios (FuncionarioID, Nome, Cargo, Departamento) VALUES
+(1, 'Alice', 'Analista', 'TI'),
+(2, 'Bob', 'Supervisor', 'Vendas'),
+(3, 'Carol', 'Analista', 'RH'),
+(4, 'Daniel', 'Gerente', 'TI');
+
+INSERT INTO Pedidos (PedidoID, ClienteID, Produto, Valor) VALUES
+(1, 1, 'Notebook', 3000),
+(2, 2, 'Celular', 2000),
+(3, 1, 'Monitor', 1000),
+(4, 3, 'Cadeira', 500);
+
+SELECT * FROM Clientes;
+SELECT * FROM Vendas;
+SELECT * FROM Pagamentos;
+SELECT * FROM Funcionarios;
+SELECT * FROM Pedidos;
+
+--1 Listar as cidades únicas da tabela Clientes
+SELECT DISTINCT Cidade
+FROM Clientes;
+
+--2 Listar as categorias únicas de produtos da tabela Vendas
+SELECT DISTINCT Categoria
+FROM Vendas;
+
+--3 Listar as formas de pagamento únicas da tabela Pagamentos
+SELECT DISTINCT FormaPagamento
+FROM Pagamentos;
+
+--4 Listar os cargos únicos dos funcionários da tabela Funcionarios
+SELECT DISTINCT Cargo
+FROM Funcionarios;
+
+--5 Listar os nomes dos clientes e os produtos que eles pediram
+SELECT DISTINCT c.Nome, p.Produto AS produtos_pedidos
+FROM Pedidos p
+JOIN Clientes c ON p.ClienteID = c.ClienteID;
+
+--6 Liste os vendedores que realizaram vendas para apenas uma categoria (ou seja, os vendedores que têm uma categoria única nas vendas).
+SELECT f.Nome,
+	COUNT(DISTINCT v.Categoria) AS categoriasUnicas
+	FROM Vendas v
+	JOIN Funcionarios f ON v.VendaID = f.FuncionarioID	
+	GROUP BY f.Nome
+	HAVING COUNT(DISTINCT categoria) = 1;
